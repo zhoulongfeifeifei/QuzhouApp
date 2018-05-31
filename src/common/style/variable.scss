@@ -1,0 +1,34 @@
+/* variable */
+$color-bg: #f4f4f4;
+$color-bg1: #fceeef;
+$color-bg2: #D72930;
+$color-font1: #666;
+$color-font2: #333;
+$color-font3: #D72930;
+$color-font4: #ff2b2b;
+$color-font5: #dedede;
+$color-font6: #fff;
+$color-font7: #999;
+$color-border-left1: #D72930;
+$color-btn1: #dedede;
+$color-btn2: #D72930;
+$color-btn3: #FF8000;
+$color-line1: #d1d3d5;
+$color-border: #eee;
+$color-border2: #ddd;
+$font-size1: 0.8rem; //16px
+$font-size2: 0.75rem; //15px
+$font-size3: 0.7rem; //14px
+$font-size4: 0.6rem; //12px
+$base-indent: 0.5rem;
+$bg-color: #fff;
+
+/* mixin */
+@mixin fill-all {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 2.25rem;
+  bottom: 0;
+  overflow: auto;
+}

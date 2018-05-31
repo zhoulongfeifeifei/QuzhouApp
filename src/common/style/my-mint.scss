@@ -1,0 +1,37 @@
+.mint-cell{
+  min-height: 2.4rem;
+}
+.mint-cell-wrapper{
+  padding:0 .5rem
+}
+.mint-cell-label{
+  display: inline;
+  vertical-align: bottom;
+}
+.mint-cell-text{
+  font-size: .8rem
+}
+
+
+.card-item {
+  .mint-cell-title{ float: left
+  }
+  .mint-cell-label{
+    font-size: .6rem
+  }
+}
+.account-setting, .card-item, .doctor-list {
+  .mint-cell-allow-right::after{
+    height:8px;
+    width:8px
+  }
+}
+
+//button-danger color
+.mint-button--danger.is-plain {
+  border: 1px solid $color-font3;
+  color: $color-font3;
+}
+.mint-button--danger {
+  background-color: $color-font3;
+}
