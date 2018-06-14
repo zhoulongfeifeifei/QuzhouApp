@@ -47,7 +47,7 @@ export default {
         .then(res => {
           vm.$indicator.close()
           // res为1时 医保移动支付未开通，点击全自费支付后重新调用/presMerge
-          if (res.data.tipType === '1' || res.data.tipType === '2') {
+          if (res.data.tipFlag === '1') {
             MessageBox({title: '', message: res.data.tipType === '1' ? '您还没有开通医保移动支付，请先开通。' : '您已被限制使用医保移动支付，请尝试全自费支付，或到医院窗口支付。', showCancelButton: true, cancelButtonText: '知道了', confirmButtonText: '全自费支付'}).then(action => {
               if (action === 'confirm') {
                 vm.$toast({message: '调用全自费支付', position: 'center', duration: 2000})
@@ -57,17 +57,18 @@ export default {
                 })
                   .catch(err => {
                     vm.$indicator.close()
-                    vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
+                    MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
+                    // vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
                   })
               }
             })
           } else {
-            vm.$router.push({path: '/paymentDetail/' + res, query: {dataId: id}})
+            vm.$router.push({path: '/paymentDetail/' + res.data.billsId, query: {dataId: id}})
           }
         })
         .catch(err => {
           vm.$indicator.close()
-          vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 5000})
+          MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
         })
     },
     // 待支付处方页面,点击去支付调用/presMerge,再/preSettlementBill预结算，跳转支付详情,传参billsId
@@ -88,17 +89,17 @@ export default {
                 })
                   .catch(err => {
                     vm.$indicator.close()
-                    vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
+                    MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
                   })
               }
             })
           } else {
-            vm.$router.push({path: '/presPayment/' + res})
+            vm.$router.push({path: '/presPayment/' + res.data.billsId})
           }
         })
         .catch(err => {
           vm.$indicator.close()
-          vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 5000})
+          MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
         })
     },
 
@@ -123,7 +124,7 @@ export default {
           })
             .catch(err => {
               vm.$indicator.close()
-              vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
+              MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
             })
         }
       })

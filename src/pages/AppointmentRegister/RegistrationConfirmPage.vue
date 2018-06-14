@@ -11,8 +11,8 @@
     <cellItem title="就诊序号" isLink :value="number ? number : '自动分配'" @click.native="linkTo"></cellItem>
   </div>
   <div class="button-container">
-      <mt-button type="danger" @click="postComfirmDetail">提 交</mt-button>
-    </div>
+    <mt-button type="danger" @click="postComfirmDetail">提 交</mt-button>
+  </div>
   <MyModal :width="'100%'" title="选择就诊序号" :visible="visible" @oncancel="onCancel" @onok="onOk" v-if="visible" :className="'pick-number-modal'" :header="true">
     <a class="number-cell" key="00" @click="pickSeqNumber('')">
       自动分配
@@ -75,7 +75,7 @@ export default {
         this.$store.dispatch('postTodayRegistration', {seqNum: this.number}).then(res => {
           vm.$indicator.close()
           // 未开通医保or黑名单时，弹窗提示，点击全自费支付再次调用postTodayRegistration，并传selfFlag字段
-          if (res.data.tipType === '1' || res.data.tipType === '2') {
+          if (res.data.tipFlag === '1') {
             MessageBox({title: '', message: res.data.tipType === '1' ? '您还没有开通医保移动支付，请先开通。' : '您已被限制使用医保移动支付，请尝试全自费支付，或到医院窗口支付。', showCancelButton: true, cancelButtonText: '知道了', confirmButtonText: '全自费支付'}).then(action => {
               if (action === 'confirm') {
                 vm.$toast({message: '调用全自费支付', position: 'center', duration: 2000})
@@ -85,7 +85,7 @@ export default {
                 })
                   .catch(err => {
                     vm.$indicator.close()
-                    vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
+                    MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
                   })
               }
             })
@@ -95,7 +95,7 @@ export default {
         })
           .catch(err => {
             vm.$indicator.close()
-            vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
+            MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
           })
       }
       // 预约挂号提交
@@ -107,7 +107,7 @@ export default {
         })
           .catch(err => {
             vm.$indicator.close()
-            vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
+            MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
           })
       }
     },

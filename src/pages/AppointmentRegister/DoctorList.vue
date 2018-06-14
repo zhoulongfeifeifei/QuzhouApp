@@ -5,6 +5,7 @@
   </div>
 </template>
 <script>
+import { MessageBox } from 'mint-ui'
 import { mapMutations, mapGetters, mapActions } from 'vuex'
 export default {
   name: 'DoctorList',
@@ -46,7 +47,7 @@ export default {
         this.closeLoading()
       }).catch(err => {
         this.closeLoading()
-        this.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
+        MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
       })
     },
 

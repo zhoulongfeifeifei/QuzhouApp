@@ -5,7 +5,7 @@
         v-for='(item, index) in deptList'
         :class='{active: index === deptSelIndex}'
         :key='item.deptId'
-        @click='handleSel(index)'>
+        @click='handleSel(index, item.deptId)'>
         {{item.deptName}}
       </div>
     </div>
@@ -22,6 +22,7 @@
 </template>
 
 <script>
+import { MessageBox } from 'mint-ui'
 import { mapState, mapMutations, mapGetters, mapActions } from 'vuex'
 export default {
   name: 'DepartmentsList',
@@ -47,13 +48,14 @@ export default {
     window.scope = this
     this.changeHeaderTitle(this.hospName)
     this.$store.commit('setDeptData', [])
+    this.$store.commit('setDeptSubData', [])
     this.getDeptData()
     this.$store.commit('resetState')
   },
 
   methods: {
     ...mapMutations(['changeHeaderTitle', 'setDeptSelIndex', 'setDeptSubSelIndex', 'setDeptDetail']),
-    ...mapActions(['updateDeptData']),
+    ...mapActions(['updateDeptData', 'updateDeptSubData']),
 
     loading () {
       this.$indicator.open({text: '加载中...', spinnerType: 'snake'})
@@ -69,13 +71,19 @@ export default {
         this.closeLoading()
       }).catch(err => {
         this.closeLoading()
-        this.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
+        MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
       })
     },
 
-    handleSel (index) {
+    handleSel (index, id) {
       this.setDeptSubSelIndex(-1)
       this.setDeptSelIndex(index)
+      this.updateDeptSubData({ 'hospId': this.hospId, 'deptId': id }).then(() => {
+        this.closeLoading()
+      }).catch(err => {
+        this.closeLoading()
+        MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
+      })
     },
 
     handleToDocList (item, index) {

@@ -23,6 +23,7 @@
 <script>
 import CardItem from '../../components/CommonComponents/CardItem.vue'
 import NoData from '../../components/CommonComponents/NoData.vue'
+import { MessageBox } from 'mint-ui'
 import { mapGetters } from 'vuex'
 export default {
   name: 'PayHistory',
@@ -58,7 +59,7 @@ export default {
         })
         .catch(err => {
           this.$indicator.close()
-          this.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
+          MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
         })
     },
     loadTop: function () {

@@ -117,3 +117,6 @@ s, i, em {
   white-space: nowrap;
   overflow: hidden;
 }
+
+.fx { display:-webkit-box; display:-webkit-flex; display:flex }
+.fx1 { -webkit-box-flex:1; -webkit-flex:1; flex:1 }

@@ -68,7 +68,7 @@ const getters = {
   regParams: (state, getters, rootState) => {
     const regParams = {
       hospId: getters.getHospId,
-      pbId: getters.getRegMessage.pbId,
+      pbId: getters.getRegMessage.pbIds,
       noonType: getters.getRegMessage.timeType
     }
     return regParams
@@ -245,7 +245,9 @@ const actions = {
   // 获取支付通道列表
   getPaymentChannels ({ dispatch, commit, getters, rootGetters }, params) {
     return new Promise((resolve, reject) => {
-      registration.getPayChannels({...params, userId: getters.userInfo.userId}).then(res => {
+      let userId
+      params.userId ? userId = params.userId : userId = getters.userInfo.userId
+      registration.getPayChannels({ ...params, userId: userId }).then(res => {
         commit('GET_PAYMENT_CHANNELS', res)
         resolve(res)
       })
@@ -259,7 +261,9 @@ const actions = {
   // 获取支付详情
   getPaymentDetail ({ dispatch, commit, getters, rootGetters }, params) {
     return new Promise((resolve, reject) => {
-      registration.getPaymentDetail({...params, userId: getters.userInfo.userId}).then(res => {
+      let userId
+      params.userId ? userId = params.userId : userId = getters.userInfo.userId
+      registration.getPaymentDetail({ ...params, userId: userId }).then(res => {
         commit('GET_PAYMENT_DETAIL', res)
         resolve(res)
       })
@@ -289,15 +293,15 @@ const actions = {
     return new Promise((resolve, reject) => {
       registration.getTodayRegSync({...params, ...getters.regPostParams, userId: getters.userInfo.userId}).then(res => {
         // 是否弹框显示
-        if (res.data.tipFlag === '1') {
-          resolve(res)
-        } else if (res.data.tipFlag === '0' && res.data.isPoll === '1') {
+        if (res.data.isPoll === '1') {
           app.appSyncPost({ syncId: res.data.syncId, userId: getters.userInfo.userId }).then(res2 => {
             res2.data.recordId = res.data.recordId // 挂号单id
             res2.data.billsId = res.data.billsId // 临时账单ID
             resolve(res2)
           })
             .catch(err => { reject(err) })
+        } else {
+          resolve(res)
         }
       })
         .catch(err => { reject(err) })
@@ -320,10 +324,12 @@ const actions = {
   // 切换是否使用医保
   switchYbStatus ({ dispatch, commit, getters, rootGetters }, params) {
     return new Promise((resolve, reject) => {
-      registration.getYbSwitchSync({...params, userId: getters.userInfo.userId}).then(res2 => {
+      let userId
+      params.userId ? userId = params.userId : userId = getters.userInfo.userId
+      registration.getYbSwitchSync({ ...params, userId: userId }).then(res2 => {
         if (res2.data.isPoll === '1') {
-          app.appSyncPost({syncId: res2.data.syncId, userId: getters.userInfo.userId}).then(res3 => {
-            registration.getPaymentDetail({billsId: res3.data.dataId, userId: getters.userInfo.userId}).then(res4 => {
+          app.appSyncPost({ syncId: res2.data.syncId, userId: userId }).then(res3 => {
+            registration.getPaymentDetail({ billsId: res3.data.dataId, userId: userId }).then(res4 => {
               commit('GET_PAYMENT_DETAIL', res4)
               resolve(res4)
             })
@@ -334,7 +340,7 @@ const actions = {
           })
             .catch(err => { reject(err) })
         } else {
-          registration.getPaymentDetail({billsId: params.billsId, userId: getters.userInfo.userId}).then(res5 => {
+          registration.getPaymentDetail({ billsId: params.billsId, userId: userId }).then(res5 => {
             commit('GET_PAYMENT_DETAIL', res5)
             resolve(res5)
           })
@@ -379,7 +385,9 @@ const actions = {
   // 支付成功后轮循跳转至详情页面
   syncPaymentDetailAction ({ dispatch, commit, getters, rootGetters }, params) {
     return new Promise((resolve, reject) => {
-      app.appSyncPost({syncId: params.syncId, userId: getters.userInfo.userId}).then(res => {
+      let userId
+      params.userId ? userId = params.userId : userId = getters.userInfo.userId
+      app.appSyncPost({ syncId: params.syncId, userId: userId }).then(res => {
         resolve(res)
       })
         .catch(err => {
@@ -406,16 +414,6 @@ const actions = {
       registration.getRule({...params, userId: getters.userInfo.userId}).then(res => {
         resolve(res)
         commit('GET_RULE', res)
-      })
-        .catch(err => { reject(err) })
-    })
-  },
-
-  // 获取支付token
-  async getPaymentToken  ({ dispatch, commit, getters, rootGetters }, params) {
-    return new Promise((resolve, reject) => {
-      app.getUserToken({...params, userId: getters.userInfo.userId}).then(res => {
-        resolve(res.data.token)
       })
         .catch(err => { reject(err) })
     })
@@ -448,6 +446,11 @@ const mutations = {
 
   GET_PAY_LIST (state, res) {
     res.pageNo === 1 ? (state.presList = res.presList) : (state.presList = state.presList.concat(res.presList))
+    for (let i = 0; i < state.presList.length; i++) {
+      if (state.presList[i].presName.length > 15) {
+        state.presList[i].presName = state.presList[i].presName.slice(0, 15) + '...'
+      }
+    }
     state.presListNext = res.next
   },
   GET_PAY_LIST_FAILURE (state, res) {

@@ -15,6 +15,13 @@ const router = new Router({
       // component: resolve => require(['@/pages/AppointmentRegister/RegisterIndex'], resolve),
       children: [
         {
+          path: '/index',
+          name: 'Index',
+          component (resolve) {
+            require(['@/pages/indexPage'], resolve)
+          }
+        },
+        {
           path: '/registerIndex',
           name: 'RegisterIndex',
           component (resolve) {
@@ -139,6 +146,43 @@ const router = new Router({
           name: 'Address',
           component (resolve) {
             require(['@/pages/AppointmentRegister/Address'], resolve)
+          }
+        },
+        // 检查检验--报告单详情
+        {
+          path: '/inspectionList',
+          name: 'InspectionList',
+          component (resolve) {
+            require(['@/pages/InspectionPage/InspectionList'], resolve)
+          }
+        },
+        {
+          path: '/inspectionDetail/:id',
+          name: 'InspectionDetail',
+          component (resolve) {
+            require(['@/pages/InspectionPage/InspectionDetail'], resolve)
+          }
+        },
+        // 候诊叫号
+        {
+          path: '/waitingCallList',
+          name: 'WaitingCallList',
+          component (resolve) {
+            require(['@/pages/WaitingCallPage/WaitingCallList'], resolve)
+          }
+        },
+        {
+          path: '/docCallList',
+          name: 'DocCallList',
+          component (resolve) {
+            require(['@/pages/WaitingCallPage/DocCallList'], resolve)
+          }
+        },
+        {
+          path: '/waitingCallDetail/:id',
+          name: 'WaitingCallDetail',
+          component (resolve) {
+            require(['@/pages/WaitingCallPage/WaitingCallDetail'], resolve)
           }
         }
       ]

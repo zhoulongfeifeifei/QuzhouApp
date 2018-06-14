@@ -22,17 +22,5 @@ export default {
     })
   },
   // 授权接口获取基本信息
-  getSecurityInfo: data => createApi(baseConf, {url: '/user/zjnxAuth', data}),
-
-  // 医保移动支付开通
-  agreeProtocol: data => createApi(baseConf, {url: '/user/payOpen', data}),
-
-  // 获取refrewshToken
-  getRefreshToken: (data) => createApi(baseConf, {url: '/user/getRefreshToken', data}),
-
-  // 获取随机数
-  getRandomNum: (data) => createApi(baseConf, {url: '/user/getRandomNum', data}),
-
-  // 获取东阳人社sign
-  getDySign: (data) => createApi(baseConf, {url: '/user/getDySign', data})
+  getSecurityInfo: data => createApi(baseConf, {url: '/user/qzrsInfo', data})
 }

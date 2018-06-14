@@ -25,7 +25,7 @@ export default {
   getPaymentDetail: data => createApi(baseConf, {url: '/pres/presPayDetails', data}),
 
   // 获取当日挂号确认单单轮循ID
-  getTodayRegSync: data => createApi(baseConf, {url: '/reg/submit', data}),
+  getTodayRegSync: data => createApi(baseConf, {url: '/reg/submitQz', data}),
 
   // 获取预约挂号确认单单轮循ID
   getAppointRegSync: data => createApi(baseConf, {url: '/reg/bookRegist', data}),
@@ -43,7 +43,7 @@ export default {
   getRule: data => createApi(baseConf, {url: '/rule', data}),
 
   // 一键支付接口
-  oneClickPayment: data => createApi(baseConf, {url: '/pres/expressCheckOutZjnx', data}),
+  oneClickPayment: data => createApi(baseConf, {url: '/pres/expressCheckOutQz', data}),
 
   // 获取支付状态
   getPaymentStatus: data => createApi(baseConf, {url: '/pres/paymentQuery', data}),

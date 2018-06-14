@@ -5,6 +5,7 @@
 </template>
 
 <script>
+import { MessageBox } from 'mint-ui'
 import { mapMutations, mapGetters, mapActions } from 'vuex'
 
 export default {
@@ -37,7 +38,7 @@ export default {
       })
         .catch(err => {
           vm.$indicator.close()
-          vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
+          MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
           vm.$router.push({path: '/' + vm.$route.query.current + '/' + vm.$router.params.id, query: {source: 'index'}})
         })
     },
@@ -56,7 +57,7 @@ export default {
         }
       } catch (err) {
         this.$indicator.close()
-        this.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
+        MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
       }
     }
   },
@@ -78,7 +79,7 @@ export default {
     })
       .catch(err => {
         vm.$indicator.close()
-        vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 5000})
+        MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
       })
   }
 }

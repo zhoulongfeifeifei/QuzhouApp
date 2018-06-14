@@ -1,5 +1,5 @@
 <template>
-  <div :style="{paddingBottom: '50px'}">
+  <div :style="{paddingBottom: '50px'}" v-if="allLoad">
     <div class="payment-detail">
       <div class="form">
         <div class="sub-title">
@@ -25,7 +25,7 @@
           </div>
           <div class="line-left line-left-large"></div>
         </div>
-        <CellItem class-name="payment-cell margin-top-m btn-box" title="医保支付" style="color:red" :value="isMedicare" :value-div="true">
+        <CellItem class-name="payment-cell btn-box" title="医保支付" style="color:red" :value="isMedicare" :value-div="true">
           <!-- <mt-switch class="yb-switch" v-model="isMedicare" @change="switchYbStatus" slot="value-div"></mt-switch> -->
           <div slot="value-div">
             <a @click="switchYbStatus(true)" v-show="isMedicare"><img src="./../../assets/img_kaiqi.png" :style="{width: '2.4rem'}"/></a>
@@ -39,40 +39,22 @@
         <hr v-show="isMedicare"/>
         <CellItem class-name="payment-cell" title="个人支付" :value="'￥' + payDetail.personalFee" text-color="#ff2b2b"></CellItem>
         <hr/>
-        <!-- <CellItem class-name="payment-cell" title="支付方式" :value="paymentHtml" :value-div="true" @click.native="choosePayment">
+        <CellItem class-name="payment-cell" title="支付方式" value=' ' :value-div="true" @click.native="choosePayment">
           <div slot="value-div">
-            <img :src="payChannels && payChannels[0] ? payChannels[0].icon : ''" :style="{width: '1.2rem', height: 'auto'}"/> {{payChannels && payChannels[0] ? payChannels[0].name : ''}}
-          </div>
-        </CellItem> -->
-        <CellItem class-name="payment-cell" title="支付方式" :value="paymentHtml" :value-div="true" @click.native="choosePayment">
-          <div slot="value-div">
-            <img :src="paymentSrc" :style="{width: '1.2rem', height: 'auto'}"/> {{paymentHtml}}
+            <img :src="paymentSrc ? paymentSrc : payChannels[0] ? payChannels[0].icon : ''" :style="{width: '1.2rem', height: '1.2rem'}"/> {{paymentHtml ? paymentHtml : payChannels[0] ? payChannels[0].name : ''}}
           </div>
         </CellItem>
       </div>
     </div>
-    <!-- 线上：https://epay1.zj96596.com/paygate/main 测试： http://60.190.244.46:8004/paygate/main-->
-    <!-- <form name="pay-form" ref="payForm" method="post" action="http://60.190.244.46:8004/paygate/main" style="display: none">
-        <input type="hidden" name="signedData" v-model="signedData"/>
-        <textarea name="Plain" v-model="Plain"></textarea>
-        <textarea name="Signature" v-model="Signature"></textarea> -->
-        <!-- <input type="submit" name="submit" value="银行支付网关" /> -->
-    <!-- </form> -->
-    <!-- <MyModal :width="'100%'" title="选择支付方式" :visible="visible" @oncancel="onCancel" @onok="onOk" v-if="visible" :className="'pick-number-modal'" :header="true">
-    <a class="number-cell" v-for="(item, index) in payChannels" :key="index" @click="paymentMethod(item.value,item.name,item.icon)">
-      <img :src="item.icon" alt="" :style="{width: '1.2rem', height: 'auto'}">{{item.name}}
-    </a>
-  </MyModal> -->
-  <MyModal :width="'100%'" title="选择支付方式" :visible="visible" @oncancel="onCancel" @onok="onOk" v-if="visible" :className="'pick-number-modal'" :header="true">
-    <a class="number-cell" v-for="(item, index) in paymentStyle" :key="index" @click="paymentMethod(item.value,item.name,item.icon)">
-      <img :src="item.icon" alt="" :style="{width: '1.2rem', height: 'auto'}">{{item.name}}
-    </a>
-  </MyModal>
+    <MyModal :width="'100%'" title="选择支付方式" :visible="visible" @oncancel="onCancel" @onok="onOk" v-if="visible" :className="'pick-number-modal'" :header="true">
+      <a class="number-cell" v-for="(item, index) in payChannels" :key="index" @click="paymentMethod(item.value,item.name,item.icon)">
+        <img :src="item.icon" alt="" :style="{width: '1.2rem', height: '1.2rem'}">{{item.name}}
+      </a>
+    </MyModal>
     <div class="place-bottom">
       <span class="pay-amount">还需支付金额: <span class="color-red"><span class="small-font">¥</span> {{payDetail.personalFee}}</span></span>
       <mt-button class="pay-button" type="danger" @click="postPayDetail">立即支付</mt-button>
     </div>
-    <!-- <vue-pay-keyboard ref="pay" :is-pay="isPay" @pas-end="pasEnd" @close="closeModal" pay-title="请输入医保支付密码"></vue-pay-keyboard> -->
   </div>
 </template>
 
@@ -82,14 +64,8 @@ import CellItem from '@/components/CommonComponents/CellItem.vue'
 import MyModal from '@/components/CommonComponents/Modal.vue'
 import Table from '@/components/CommonComponents/Table.vue'
 import { mapMutations, mapGetters, mapActions } from 'vuex'
-// import md5 from 'js-md5'
 
 const fields = {'userName': '就诊人', 'mrn': '就诊卡号', 'docName': '开方医生'}
-const paymentStyle = [
-  {name: '支付宝', value: '2', icon: 'http://static.dabay.cn/icon/icon_alipay%402x.png'},
-  {name: '微信支付', value: '4', icon: 'http://static.dabay.cn/icon/icon_alipay%402x.png'},
-  {name: '银联支付', value: '8', icon: 'http://static.dabay.cn/icon/icon_alipay%402x.png'}
-]
 const columns = [{
   title: '项目/规格',
   subTitle: '类',
@@ -109,23 +85,20 @@ const columns = [{
 export default {
   name: 'PaymentDetail',
   components: { Button, CellItem, MyModal, Table, Switch },
+  inject: ['reload'],
   data () {
     return {
       fields: fields,
       columns: columns,
-      paymentStyle: paymentStyle,
       hideMore: true,
       isMedicare: true,
-      isPay: false,
-      Plain: '',
-      Signature: '',
-      signedData: '',
-      formUrl: '',
       syncId: '',
       visible: false,
-      paymentHtml: paymentStyle[0].name,
-      paymentValue: paymentStyle[0].value,
-      paymentSrc: paymentStyle[0].icon
+      paymentHtml: '',
+      paymentValue: '',
+      paymentSrc: '',
+      webkit: '',
+      allLoad: false
     }
   },
   computed: {
@@ -133,9 +106,84 @@ export default {
       'payDetail', 'userInfo', 'payChannels', 'institutionInfo'
     ])
   },
+  watch: {
+    // 如果路由有变化，会再次执行该方法
+    '$route': 'fetchData'
+  },
+  created () {
+    this.$store.commit('changeHeaderTitle', '支付详情')
+  },
+  mounted () {
+    const vm = this
+    this.$indicator.open({text: '正在结算中...', spinnerType: 'snake'})
+
+    // 从消息推送进入时，paymentType=1时，用regId调用接口换billsId
+    if (vm.$route.query.paymentType === '1') {
+      let regId = vm.$route.params.id
+      let userId = vm.$route.query.userId
+      vm.withRegIdToPay(regId, userId)
+    } else {
+      let billsId = this.$route.params.id
+      let userId = this.$route.query.userId
+      this.$store.dispatch('getPaymentDetail', {billsId: billsId, userId: userId}).then(res => {
+        vm.isMedicare = res.data.isMedicare === '1'
+        vm.allLoad = true // 没有完全加载时不显示页面详情（因为中间有跳转当前页）
+        vm.$indicator.close()
+      })
+        .catch(err => {
+          vm.$indicator.close()
+          MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
+        })
+
+      // 获取支付通道列表
+      setTimeout(() => {
+        this.$store.dispatch('getPaymentChannels', {billsId: billsId, userId: userId}).then(res => {
+          vm.$indicator.close()
+        })
+          .catch(err => {
+            vm.$indicator.close()
+            MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
+          })
+      }, 200)
+
+      // 获取支付结果
+      window.payStatus = function (resultStatus) {
+        if (window.isAndroid) {
+          let syncId = resultStatus.syncId
+          let payStatu = resultStatus.payStatus
+          if (payStatu === '0') {
+            vm.syncPaymentDetail(syncId)
+          }
+          if (payStatu === '1') {
+            this.$router.push({path: '/' + vm.$route.query.current + '/' + vm.$route.params.id, query: {source: 'index'}})
+          }
+        }
+        if (window.isiOS) {
+          let resultStatu = resultStatus.split(',')
+          let syncId = resultStatu[1]
+          let payStatu = resultStatu[0]
+          if (payStatu === '0') {
+            vm.syncPaymentDetail(syncId)
+          }
+          if (payStatu === '1') {
+            this.$router.push({path: '/' + vm.$route.query.current + '/' + vm.$route.params.id, query: {source: 'index'}})
+          }
+        }
+      }
+      // 医保拿syncId
+      window.ybStatus = function (resultStatus) {
+        if (window.isAndroid) {
+          vm.syncPaymentDetail(resultStatus.syncId)
+        }
+        if (window.isiOS) {
+          vm.syncPaymentDetail(resultStatus)
+        }
+      }
+    }
+  },
   methods: {
     ...mapActions([
-      'postPayment', 'getPaymentDetail', 'switchYbStatus', 'getPaymentToken', 'oneClickPayment', 'syncPaymentResultAction', 'syncPaymentDetailAction', 'getRandomNum'
+      'postPayment', 'getPaymentDetail', 'getPaymentChannels', 'switchYbStatus', 'oneClickPayment', 'syncPaymentResultAction', 'syncPaymentDetailAction', 'getRandomNum'
     ]),
     ...mapMutations([
       'changeHeaderTitle'
@@ -160,195 +208,95 @@ export default {
       this.visible = false
     },
     // 切换是否使用医保状态
-    // switchYbStatus (checked) {
-    //   // this.isMedicare = !checked
-    //   this.$indicator.open({text: '加载中...', spinnerType: 'snake'})
-    //   const vm = this
-    //   this.$store.dispatch('switchYbStatus', {billsId: this.$route.params.id, isMedicare: !checked ? '0' : '1'}).then(res => {
-    //     vm.$indicator.close()
-    //     this.isMedicare = !checked
-    //   })
-    //     .catch(err => {
-    //       vm.$indicator.close()
-    //       vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 5000})
-    //     })
-    // },
+    switchYbStatus (checked) {
+      this.$indicator.open({text: '加载中...', spinnerType: 'snake'})
+      const vm = this
+      let userId = this.$route.query.userId
+      this.$store.dispatch('switchYbStatus', {billsId: this.$route.params.id, isMedicare: !checked ? '0' : '1', userId: userId}).then(res => {
+        vm.$indicator.close()
+        this.isMedicare = !checked
+      })
+        .catch(err => {
+          vm.$indicator.close()
+          MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
+        })
+    },
     // 提交支付
-    async postPayDetail () {
-      // 首先判断当前设备
-      var userAgent = navigator.userAgent
-      var isAndroid = userAgent.indexOf('Android') > -1 || userAgent.indexOf('Adr') > -1 // android终端
-      var isiOS = !!userAgent.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/) // ios终端
-      var zhrsAndroid, webkit
-      webkit || webkit = {}
-      // 当点击立即支付的时候此时要用安卓或者ios的方法同时传入billsId(账单id)、payChannel(支付方式)、isMedicare(是否自费)
-      // const vm = this
-      // const params = {
-      //   userId: this.userInfo.userId,
-      //   billsId: this.$route.params.id,
-      //   isMedicare: this.isMedicare ? '1' : '0',
-      //   payChannel: this.payChannels[0].value,
-      //   source: '2',
-      //   returnUrl: this.institutionInfo.redirectApi + vm.$route.meta.current + '/' + this.$route.params.id + '?navigate=' + this.$route.meta.navigate + '&dataId=' + this.$route.query.dataId
-      // }
-      const params = {
+    postPayDetail () {
+      const param = {
         billsId: this.$route.params.id,
         isMedicare: this.isMedicare ? '1' : '0',
-        payChannel: this.paymentValue
+        payChannel: this.paymentValue ? this.paymentValue : this.payChannels[0].value,
+        idCard: this.userInfo.idCard,
+        cardNum: this.userInfo.cardNum,
+        userId: this.$route.query.userId ? this.$route.query.userId : this.userInfo.userId
       }
-      function showKeyboard (params) {
-        let parma = JSON.stringify(params)
-        if (isAndroid) {
-          zhrsAndroid ? zhrsAndroid.showKeyboard(parma) : ''
-        }
-        if (isiOS) {
-          webkit ? webkit.showKeyboard(parma) : ''
-        }
+      let parm = JSON.stringify(param)
+      if (window.isAndroid) {
+        window.qzAndroid.showKeyboard(parm)
       }
-      // if (this.isMedicare) {
-      //   // 纯医保支付或者医保加自费(先唤醒键盘)
-      //   this.isPay = true
-      // } else {
-      //   // 纯自费支付(先调用一键支付接口，再唤醒丰收e支付，再轮循)
-      //   vm.oneClickPayment({...params}).then(res => {
-      //     // 提交form,唤醒丰收e支付的键盘
-      //     // localStorage.setItem('syncId', res.data.syncId)
-      //     vm.syncId = res.data.syncId
-      //     const { url, signedData, Plain, Signature } = res.data.orderInfo
-      //     vm.formUrl = url
-      //     vm.signedData = signedData
-      //     vm.Plain = Plain
-      //     vm.Signature = Signature
-      //     setTimeout(() => {
-      //       vm.$refs.payForm.submit()
-      //       vm.MFS.showNav()
-      //     }, 1000)
-      //   })
-      //     .catch(err => {
-      //       vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 5000})
-      //     })
-      // }
+      if (window.isiOS) {
+        window.webkit.messageHandlers.showKeyboard.postMessage(parm)
+      }
     },
-
-    // 关闭模态框
-    // closeModal () {
-    //   this.isPay = false
-    //   this.$refs.pay.val = []
-    // },
-
-    // 密码输入成功
-    // async pasEnd (val) {
-    //   const vm = this
-    //   const params = {
-    //     userId: this.userInfo.userId,
-    //     billsId: this.$route.params.id,
-    //     isMedicare: this.isMedicare ? '1' : '0',
-    //     payChannel: this.payChannels[0].value,
-    //     source: '2',
-    //     returnUrl: this.institutionInfo.redirectApi + vm.$route.meta.current + '/' + this.$route.params.id + '?navigate=' + vm.$route.meta.navigate + '&dataId=' + this.$route.query.dataId
-    //   }
-    //   try {
-    //     // 密码加密
-    //     let hash = await this.getRandomNum()
-    //     let passWord = hash.slice(0, 20) + md5(val) + hash.slice(-20)
-    //     // 用密码获取token
-    //     let payToken = await vm.getPaymentToken({type: 2, passWord: passWord})
-    //     if (parseFloat(vm.payDetail.personalFee)) {
-    //       // 医保加自费(先调用一键支付接口，提交后先进行丰收e支付，再轮循)
-    //       vm.oneClickPayment({...params, token: payToken}).then(res => {
-    //         // 提交form,唤醒丰收e支付的键盘
-    //         // localStorage.setItem('syncId', res.data.syncId)
-    //         const { url, signedData, Plain, Signature } = res.data.orderInfo
-    //         vm.formUrl = url
-    //         vm.signedData = signedData
-    //         vm.Plain = Plain
-    //         vm.Signature = Signature
-    //         vm.MFS.showNav()
-    //         setTimeout(() => {
-    //           vm.$refs.payForm.submit()
-    //           vm.MFS.showNav()
-    //         }, 1000)
-    //       })
-    //         .catch(err => {
-    //           vm.$refs.pay.$payStatus(false)
-    //           vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 5000})
-    //         })
-    //     } else {
-    //       // 纯医保支付(先调用一键支付接口)
-    //       vm.oneClickPayment({...params, token: payToken}).then(res => {
-    //         // 开始轮循
-    //         vm.syncPaymentDetail(res.data.syncId)
-    //       })
-    //         .catch(err => {
-    //           vm.$refs.pay.$payStatus(false)
-    //           vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 5000})
-    //         })
-    //     }
-    //   } catch (err) {
-    //     vm.$refs.pay.$payStatus(false)
-    //     vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 5000})
-    //   }
-    // },
     // 支付成功，轮循获取详情id
     syncPaymentDetail (syncId) {
+      this.$indicator.open({text: '加载中...', spinnerType: 'snake'})
       const vm = this
-      this.syncPaymentDetailAction({syncId: syncId}).then(res => {
+      let userId = vm.$route.query.userId
+      this.syncPaymentDetailAction({syncId: syncId, userId: userId}).then(res => {
+        this.$indicator.close()
         let dataId
         dataId = vm.$route.meta.navigate === 'regDetail' ? vm.$route.query.dataId : res.data.ids[0]
-        vm.$refs.pay.$payStatus(true)
+        // vm.$refs.pay.$payStatus(true)
         vm.$router.push({path: '/' + vm.$route.meta.navigate + '/' + dataId, query: {source: 'index'}})
       })
         .catch(err => {
-          MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
-          vm.$refs.pay.$payStatus(false)
-          // vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 5000})
+          MessageBox({ title: '提示', message: err.msg ? err.msg : '服务器繁忙', showCancelButton: false }).then(action => {
+            if (action === 'confirm') {
+              if (this.$route.name === 'PaymentDetail') {
+                vm.$router.push('/registerIndex')
+              } else {
+                vm.$router.push('/payIndex')
+              }
+            }
+          })
         })
     },
-    // 获取支付结果
-    async syncPaymentResult (syncId) {
-      try {
-        let {data} = await this.syncPaymentResultAction({paymentId: this.$route.query.paymentId})
-        // this.syncPaymentDetail(syncId)
-        if (data.tradeStatus === 'PAYMENT_SUCCESS') {
-          // 支付成功
-          this.syncPaymentDetail(syncId)
-        } else {
-          // 支付失败，页面可继续发起支付
-          // localStorage.removeItem('syncId')
-          // this.$router.push({path: '/' + this.$route.query.current + '/' + this.$route.params.id, query: {source: 'index'}})
-        }
-      } catch (err) {
-        this.$indicator.close()
-        MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
-        // this.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
-      }
+    // 刷新当前路由
+    fetchData: function () {
+      this.reload()
+    },
+    // 消息推送页面,点击后，在支付详情页面调用/newBill生成账单,跳转支付详情,传参billsId
+    withRegIdToPay: function (id, userId) {
+      const vm = this
+      vm.$indicator.open({text: '加载中...', spinnerType: 'snake'})
+      this.$store.dispatch('withRegIdToPay', {type: 1, regId: id, userId: userId})
+        .then(res => {
+          vm.$indicator.close()
+          if (res.data.tipFlag === '1') {
+            MessageBox({title: '', message: res.data.tipType === '1' ? '您还没有开通医保移动支付，请先开通。' : '您已被限制使用医保移动支付，请尝试全自费支付，或到医院窗口支付。', showCancelButton: true, cancelButtonText: '知道了', confirmButtonText: '全自费支付'}).then(action => {
+              if (action === 'confirm') {
+                vm.$toast({message: '调用全自费支付', position: 'center', duration: 2000})
+                vm.$indicator.open({text: '加载中...', spinnerType: 'snake'})
+                vm.$store.dispatch('withRegIdToPay', {type: 1, regId: id, selfFlag: 1, userId: userId}).then(res => {
+                  vm.$indicator.close()
+                })
+                  .catch(err => {
+                    vm.$indicator.close()
+                    MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
+                  })
+              }
+            })
+          } else {
+            vm.$router.push({path: '/presPayment/' + res.data.billsId, query: {paymentType: '2'}})
+          }
+        })
+        .catch(err => {
+          vm.$indicator.close()
+          MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
+        })
     }
-  },
-  mounted () {
-    const vm = this
-    this.$indicator.open({text: '正在结算中...', spinnerType: 'snake'})
-    this.$store.commit('changeHeaderTitle', '支付详情')
-    let billsId = this.$route.params.id
-    // 获取支付详情
-    if (this.$route.query.syncId) {
-      this.syncPaymentResult(this.$route.query.syncId)
-    }
-    this.$store.dispatch('getPaymentDetail', {billsId: billsId}).then(res => {
-      vm.isMedicare = res.data.isMedicare === '1'
-      vm.$indicator.close()
-    })
-      .catch(err => {
-        this.$indicator.close()
-        vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 5000})
-      })
-    // 获取支付通道列表
-    this.$store.dispatch('getPaymentChannels', {billsId: billsId}).then(res => {
-      vm.$indicator.close()
-    })
-      .catch(err => {
-        this.$indicator.close()
-        vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 5000})
-      })
   }
 }
 </script>

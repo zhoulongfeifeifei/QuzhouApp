@@ -1,12 +1,34 @@
 <template>
-  <div id="app">
-    <router-view/>
+  <div id="app" :class="{'iosSty' : ios}">
+    <router-view v-if="isRouterAlive"/>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'App'
+  name: 'App',
+  provide () {
+    return {
+      reload: this.reload
+    }
+  },
+  data () {
+    return {
+      ios: false,
+      isRouterAlive: true
+    }
+  },
+  created () {
+    if (window.isiOS) {
+      this.ios = true
+    }
+  },
+  methods: {
+    reload () {
+      this.isRouterAlive = false
+      this.$nextTick(() => (this.isRouterAlive = true))
+    }
+  }
 }
 </script>
 
@@ -25,7 +47,9 @@ export default {
   bottom: 0;
   overflow: auto;
 }
-
+.iosSty{
+  margin-top: 1.0rem;
+}
 .card-container{
   margin: $base-indent;
 }

@@ -4,6 +4,7 @@
 </template>
 
 <script>
+import { MessageBox } from 'mint-ui'
 import { mapGetters } from 'vuex'
 export default {
   name: 'Rule',
@@ -21,7 +22,7 @@ export default {
       })
       .catch(err => {
         this.$indicator.close()
-        this.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
+        MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
       })
   },
   computed: {

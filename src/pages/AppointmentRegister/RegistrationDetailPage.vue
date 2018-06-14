@@ -1,12 +1,9 @@
 <template>
 <div class="">
   <div class="bar-code ac" v-if="registrationDetail.barcodeUrl">
-    <!--place jsbarcode here -->
-    <h4 class="title" :style="{padding: '0.3rem 0 0'}">{{registrationDetail.hospName}}</h4>
     <p class="title" :style="{margin: '0.1rem'}">{{registrationDetail.barCodeName}}</p>
     <p @click="openModal">
       <img :src="registrationDetail.barcodeUrl" :style="{width: '12.2rem', height: 'auto'}"/>
-      <!-- <VueBarcode :value="registrationDetail.barcodeUrl ? registrationDetail.barcodeUrl : ' '" tag="img" :options="{ text: registrationDetail.barcodeUrl, height: 87, fontSize: 14, margin: 0 }"></VueBarcode> -->
     </p>
     <p class="info" :style="{margin: '0.1rem'}">{{registrationDetail.barCodeNo}}</p>
     <p class="info" :style="{padding: '0 0 0.3rem', color: '#999'}">(凭此条形码到相应科室就诊)</p>
@@ -25,7 +22,7 @@
         <span class='doctor-tag'>{{registrationDetail.docTitle}}</span>
       </slot>
       <slot v-if="item.key === 'userName' && registrationDetail.mrn" slot="value-div">
-        <span v-if="registrationDetail.mrn" :style="{fontSize: '0.6rem'}"> ({{registrationDetail.mrn}})</span>
+        <span v-if="registrationDetail.mrn" :style="{fontSize: '0.6rem'}">&nbsp;(病历号{{registrationDetail.mrn}})</span>
       </slot>
     </CellItem>
   </div>
@@ -44,14 +41,15 @@
   <mt-button class="cancel-button" type="primary" v-if="registrationDetail.canCancel === '1'" @click.native="cancelRegistration">取消预约</mt-button>
 
   <MyModal :visible="visible" @oncancel="onCancel" @onok="onOk" v-if="visible" :className="'barcode-modal'">
-    <h4 class="title">{{registrationDetail.hospName}}</h4>
-    <p class="title">{{registrationDetail.barCodeName}}</p>
-    <p class="bar-image" @click="openModal">
-      <img :src="registrationDetail.barcodeUrl" :style="{width: '100%', height: '6.5rem', margin: 'auto 0'}"/>
-    </p>
-    <p class="code-info" :style="{fontSize: '1.6rem'}">{{registrationDetail.barCodeNo}}</p>
-    <p class="info">(凭此条形码到相应科室就诊)</p>
-    <!-- <VueBarcode :value="registrationDetail.barcodeUrl" tag="img" :options="{ text: registrationDetail.barcodeUrl, height: 87, fontSize: 14, margin: 0 }"></VueBarcode> -->
+    <div class="rotate-content" ref="rotateContent">
+      <h4 class="title">{{registrationDetail.hospName}}</h4>
+      <p class="title">{{registrationDetail.barCodeName}}</p>
+      <p class="bar-image" @click="openModal">
+        <img :src="registrationDetail.barcodeUrl" :style="{width: '100%', height: '6.5rem', margin: 'auto 0'}"/>
+      </p>
+      <p class="code-info" :style="{fontSize: '1.6rem'}">{{registrationDetail.barCodeNo}}</p>
+      <p class="info">(凭此条形码到相应科室就诊)</p>
+    </div>
   </MyModal>
 
 </div>
@@ -118,7 +116,7 @@ export default {
           })
             .catch(err => {
               vm.$indicator.close()
-              vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
+              MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
             })
         }
       })
@@ -134,8 +132,15 @@ export default {
     })
       .catch(err => {
         vm.$indicator.close()
-        vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
+        MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
       })
+  },
+  mounted () {
+    // 返回首页
+    const vm = this
+    window.goHome = function () {
+      vm.$router.push('/registerIndex')
+    }
   }
 }
 </script>
@@ -188,47 +193,39 @@ export default {
       height: 100%;
       img{
         display: block;
-        transform: rotate(90deg);
-        transform-origin: 6rem 5.2rem;
       }
+    }
+    .rotate-content {
+      width: 27.4rem;
+      margin: 0 auto;
+      transform: rotate(90deg);
+      transform-origin: 8rem;
+      position: fixed;
+      top: 15%;
     }
     h4.title{
       margin: 0.1rem;
-      transform: rotate(90deg);
-      transform-origin: 6rem 7.5rem;
       text-align: center;
-      width: 27.4rem;
       color: $color-font2;
       font-size: 0.8rem;
     }
     p.title{
       margin: 0.1rem;
-      transform: rotate(90deg);
-      transform-origin: 6rem 6.4rem;
       text-align: center;
-      width: 27.4rem;
       font-size: 0.75rem;
     }
     p.bar-image{
-      width: 27.4rem;
       height: 6.5rem;
-      margin-top: 0rem;
       text-align: center;
     }
     p.code-info{
       margin: 0.1rem;
-      transform: rotate(90deg);
-      transform-origin: 5.8rem -1.5rem;
       text-align: center;
-      width: 27.4rem;
       color: $color-font2
     }
     p.info{
       margin: 0.1rem;
-      transform: rotate(90deg);
-      transform-origin: 5.8rem -3.9rem;
       text-align: center;
-      width: 27.4rem;
       color: $color-font7
     }
   }

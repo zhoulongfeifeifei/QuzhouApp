@@ -4,7 +4,7 @@ import axios from 'axios'
 var qs = require('qs')
 /* common params */
 let baseOpt = {
-  source: '13',
+  source: '14',
   signNo: '0',
   v: '1.0'
   // userId: store ? store.state.app.user.userId : ''
@@ -16,17 +16,39 @@ export default function createApi () {
     const arg = Array.prototype.slice.call(arguments) // 参数的数组
     const opt = Object.assign.apply({}, arg) // 合并参数
     Object.assign(opt.data, baseOpt)
-    opt.data = qs.stringify(opt.data)
-    axios(opt).then(res => {
-      if (typeof res === 'string') res = JSON.parse(res)
-      res.data.code === 0 ? resolve(res.data) : reject(res.data)
-    }).catch(err => {
-      if (typeof err === 'string') err = JSON.parse(err)
-      reject(err)
-    })
+    SH512SignApp(opt, resolve, reject) // 请求前 调用app方法进行参数加密
+    // phoneCallBack(opt, resolve, reject) // 本地调试时直接调用此方法跳过加密
   })
 }
 
+// 调用app进行参数加密
+function SH512SignApp (opt, resolve, reject) {
+  let param = JSON.stringify(opt.data)
+  if (window.isAndroid) {
+    opt.data = JSON.parse(window.qzAndroid.sh512Sign(param)) // 直接赋值签名以后的param字符串
+    phoneCallBack(opt, resolve, reject)
+  }
+  if (window.isiOS) {
+    window.WebViewJavascriptBridge.callHandler('sh512Sign', param, function (param) {
+      opt.data = JSON.parse(param)
+      phoneCallBack(opt, resolve, reject)
+    })
+  }
+}
+
+// 加密后app的回调函数
+function phoneCallBack (opt, resolve, reject) {
+  opt.data = qs.stringify(opt.data)
+  axios(opt).then(res => {
+    if (typeof res === 'string') res = JSON.parse(res)
+    res.data.code === 0 ? resolve(res.data) : reject(res.data)
+  }).catch(err => {
+    if (typeof err === 'string') err = JSON.parse(err)
+    reject(err)
+  })
+}
+
+// 轮询
 export function createPolling () {
   const arg = Array.prototype.slice.call(arguments)
   let count = 0

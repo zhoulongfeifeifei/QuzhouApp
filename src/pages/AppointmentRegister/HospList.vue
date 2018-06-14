@@ -17,7 +17,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['hospList'])
+    ...mapGetters(['hospList', 'hasAddress', 'userInfo', 'getAddress'])
   },
   created () {
     window.scope = this
@@ -33,37 +33,34 @@ export default {
         })
         .catch(err => {
           this.$indicator.close()
-          this.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
+          MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
         })
     },
     goNext: function (id, hospName, hospSPic) {
-      this.$indicator.open({
-        text: '正在努力查询您的医院门诊档案信息',
-        spinnerType: 'snake'
-      })
       this.$store.commit('setTag', this.$route.query.tag)
       this.$store.commit('setHospInfo', {hospId: id, hospName: hospName, hospSPic: hospSPic})
-      this.$store.dispatch('getFileInfo', {hospId: id})
-        .then(res => {
-          this.$indicator.close()
-          if (res) {
-            MessageBox({message: '医院档案信息中没有查到您的家庭住址，添加后才可以进行挂号', showCancelButton: true}).then(action => {
-              if (action !== 'cancel') {
-                this.$router.push({
-                  name: 'Address',
-                  query: {
-                    hospId: id,
-                    tag: this.$route.query.tag
-                  }
-                })
-              }
-            })
+      // 候诊叫号时，不进行档案查询
+      parseInt(this.$route.query.tag) === 5 ? this.$router.push({ name: 'DocCallList' }) : this.goFileInfo(id)
+    },
+    goFileInfo: function (id) {
+      // 默认有地址时, 是if (this.hasAddress === '0') {
+      if (this.hasAddress === '0') {
+        MessageBox({title: '', message: '医院档案信息中没有查到您的家庭住址，添加后才可以进行挂号', showCancelButton: true}).then(action => {
+          if (action !== 'cancel') {
+            this.$router.push({ name: 'Address' })
           }
         })
-        .catch(err => {
-          this.$indicator.close()
-          this.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
-        })
+      } else {
+        this.$indicator.open({ text: '正在努力查询您的医院门诊档案信息', spinnerType: 'snake' })
+        this.$store.dispatch('getFileInfo', {hospId: id, siCardNo: this.userInfo.cardNum, idCard: this.userInfo.idCard, address: this.getAddress})
+          .then(res => {
+            this.$indicator.close()
+          })
+          .catch(err => {
+            this.$indicator.close()
+            MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
+          })
+      }
     }
   }
 }

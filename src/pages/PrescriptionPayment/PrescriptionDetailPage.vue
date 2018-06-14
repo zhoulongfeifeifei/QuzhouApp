@@ -1,7 +1,6 @@
 <template>
   <div class="">
     <div class="bar-code ac" v-if="prescriptionDetail.barcodeUrl">
-      <p class="info" :style="{margin: '0.3rem 0 0'}">{{prescriptionDetail.hospName}}</p>
       <p class="info" :style="{margin: '0.1rem'}">{{prescriptionDetail.barCodeName}}</p>
       <p class="barcode" @click="openModal">
         <img :src="prescriptionDetail.barcodeUrl" :style="{width: '12.2rem', height: 'auto'}"/>
@@ -20,14 +19,14 @@
     <div class="margin-top-m profile">
       <CellItem :title="item.value" :value="prescriptionDetail[item.key]" :value-div="item.valueDiv"  v-for="(item, index) in fields" :key="index" :is-money="item.isMoney" :text-color="item.color" v-if="(!item.hide || (item.hide && prescriptionDetail[item.key]))">
         <slot slot="value-div">
-          <span v-if="prescriptionDetail.mrn" :style="{fontSize: '0.6rem'}"> ({{prescriptionDetail.mrn}})</span>
+          <span v-if="prescriptionDetail.mrn" :style="{fontSize: '0.6rem'}">&nbsp;(病历号{{prescriptionDetail.mrn}})</span>
         </slot>
       </CellItem>
     </div>
     <div class="margin-top-m profile">
       <CellItem :title="item.value" :value="prescriptionDetail[item.key]" :value-div="item.valueDiv" v-for="(item, index) in payFields" :key="index" :is-money="item.isMoney" :text-color="item.key === 'payStatus' ? prescriptionDetail.payStatusColor : item.color" :is-link="item.isLink" :is-open="item.isOpen" v-if="(!item.hide || (item.hide && prescriptionDetail[item.key]))">
         <slot v-if="item.key === 'personalFee'" slot="value-div">
-          <span>元 <span v-if="prescriptionDetail.payMethod" :style="{fontSize: '0.6rem'}">({{prescriptionDetail.payMethod}})</span></span>
+          <span>元 <span v-if="prescriptionDetail.payMethod" :style="{fontSize: '0.6rem'}">{{prescriptionDetail.payMethod}}</span></span>
         </slot>
         <slot v-if="item.key === 'medicareFee'" slot="value-div">
           <span>元 <span v-if="prescriptionDetail.medicareType" :style="{fontSize: '0.6rem'}">({{prescriptionDetail.medicareType}})</span></span>
@@ -40,25 +39,26 @@
       </CellItem>
     </div>
     <div class="margin-top-m profile">
-      <CellItem :title="item.value" :value="prescriptionDetail[item.key]" v-for="(item, index) in presFields" :key="index" v-if="(!item.hide || (item.hide && prescriptionDetail[item.key]))">
+      <CellItem :title="item.value" :value="prescriptionDetail[item.key]" v-for="(item, index) in presFields" :key="index" v-if="(!item.hide || (item.hide && prescriptionDetail[item.key] && prescriptionDetail[item.key]!==''))">
       </CellItem>
     </div>
 
     <MyModal :visible="visible" @oncancel="onCancel" @onok="onOk" v-if="visible" :className="'barcode-modal'">
-      <h4 class="title">{{prescriptionDetail.hospName}}</h4>
-      <p class="title">{{prescriptionDetail.barCodeName}}</p>
-      <p class="bar-image" @click="openModal">
-        <img :src="prescriptionDetail.barcodeUrl" :style="{width: '100%', height: '6.5rem', margin: 'auto 0'}"/>
-      </p>
-      <p class="code-info" :style="{fontSize: '1.6rem'}">{{prescriptionDetail.barCodeNo}}</p>
-      <p class="info">(凭此条形码到相应科室就诊)</p>
-      <!-- <VueBarcode :value="prescriptionDetail.barcodeUrl" tag="img" :options="{ text: prescriptionDetail.barcodeUrl, height: 87, fontSize: 14, margin: 0 }"></VueBarcode> -->
+      <div class="rotate-content" ref="rotateContent">
+        <h4 class="title">{{prescriptionDetail.hospName}}</h4>
+        <p class="title">{{prescriptionDetail.barCodeName}}</p>
+        <p class="bar-image" @click="openModal">
+          <img :src="prescriptionDetail.barcodeUrl" :style="{width: '100%', height: '6.5rem', margin: 'auto 0'}"/>
+        </p>
+        <p class="code-info" :style="{fontSize: '1.6rem'}">{{prescriptionDetail.barCodeNo}}</p>
+        <p class="info">(凭此条形码到相应科室就诊)</p>
+      </div>
     </MyModal>
   </div>
 </template>
 
 <script>
-import { Cell, Button } from 'mint-ui'
+import { Cell, MessageBox, Button } from 'mint-ui'
 import MyModal from '@/components/CommonComponents/Modal.vue'
 import CellItem from '@/components/CommonComponents/CellItem.vue'
 import Table from '@/components/CommonComponents/Table.vue'
@@ -140,8 +140,15 @@ export default {
     })
       .catch(err => {
         vm.$indicator.close()
-        vm.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
+        MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
       })
+  },
+  mounted () {
+    // 返回首页
+    const vm = this
+    window.goHome = function () {
+      vm.$router.push('/payIndex')
+    }
   }
 }
 </script>
@@ -194,46 +201,39 @@ export default {
       height: 100%;
       img{
         display: block;
-        transform: rotate(90deg);
-        transform-origin: 6rem 5.2rem;
       }
+    }
+    .rotate-content {
+      width: 27.4rem;
+      margin: 0 auto;
+      transform: rotate(90deg);
+      transform-origin: 8rem;
+      position: fixed;
+      top: 15%;
     }
     h4.title{
       margin: 0.1rem;
-      transform: rotate(90deg);
-      transform-origin: 6rem 7.5rem;
       text-align: center;
-      width: 27.4rem;
       color: $color-font2;
       font-size: 0.8rem;
     }
     p.title{
       margin: 0.1rem;
-      transform: rotate(90deg);
-      transform-origin: 6rem 6.4rem;
       text-align: center;
-      width: 27.4rem;
       font-size: 0.75rem;
     }
     p.bar-image{
-      width: 27.4rem;
       height: 6.5rem;
       text-align: center;
     }
     p.code-info{
       margin: 0.1rem;
-      transform: rotate(90deg);
-      transform-origin: 5.8rem -1.5rem;
       text-align: center;
-      width: 27.4rem;
       color: $color-font2
     }
     p.info{
       margin: 0.1rem;
-      transform: rotate(90deg);
-      transform-origin: 5.8rem -3.9rem;
       text-align: center;
-      width: 27.4rem;
       color: $color-font7
     }
   }

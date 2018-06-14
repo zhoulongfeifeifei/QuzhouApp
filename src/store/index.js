@@ -5,6 +5,7 @@ import registration from './modules/registration'
 import hospital from './modules/hospital'
 import doctor from './modules/doctor'
 import recipe from './modules/recipe'
+import inspection from './modules/inspection'
 import createLogger from '../plugins/logger'
 // import { promiseParamPlugin } from './plugins/promise'
 
@@ -19,7 +20,8 @@ export default function createStore () {
       registration,
       hospital,
       doctor,
-      recipe
+      recipe,
+      inspection
     },
     plugins: debug ? [createLogger()] : []
   })

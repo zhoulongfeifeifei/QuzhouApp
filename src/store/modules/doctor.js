@@ -40,7 +40,7 @@ const getters = {
   getPbhyState: state => state.pbhyState
 }
 
-// actions
+// actionsgetDoctorList
 const actions = {
   /* ajax update DoctorList */
   updateDoctorList ({ dispatch, commit, getters, rootGetters }, params) {

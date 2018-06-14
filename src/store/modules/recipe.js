@@ -1,20 +1,6 @@
 import recipe from '../../api/recipe'
 import appApi from '../../api/app'
-// import router from '../../router/index'
 
-// const payStatuses = {
-//   '-1': '挂号失败',
-//   '0': '不可支付',
-//   '1': '待付款',
-//   '2': '付款中',
-//   '3': '付款成功',
-//   '9': '账单关闭',
-//   '31': '待退款',
-//   '32': '退款中',
-//   '33': '退款失败',
-//   '34': '退款成功',
-//   '其他': '处理中'
-// }
 const payTypes = {
   '1': '自费支付',
   '2': '医保报销'
@@ -27,7 +13,6 @@ const state = {
   presWaitListNext: '',
   presWaitHosp: '',
   prescriptionDetail: {}
-
 }
 
 // getters
@@ -75,18 +60,18 @@ const actions = {
   // 挂号单列表 点击去支付，1调用/newBill生成账单，2跳转支付详情 传参billsId
   withRegIdToPay ({ dispatch, commit, getters, rootGetters }, params) {
     return new Promise((resolve, reject) => {
-      recipe.getNewBill({regId: params.regId, userId: getters.userInfo.userId}).then(res => {
+      let userId
+      params.userId ? userId = params.userId : userId = getters.userInfo.userId
+      recipe.getNewBill({ regId: params.regId, userId: userId }).then(res => {
         let billsId = res.data.billsId
-        if (res.data.tipFlag === '1') {
-          resolve(res)
-        } else if (res.data.tipFlag === '0' && res.data.isPoll === '1') {
-          appApi.appSyncPost({syncId: res.data.syncId, userId: getters.userInfo.userId}).then(res => {
-            resolve(billsId)
-            // router.push({path: '/paymentDetail/' + billsId, query: {dataId: params.regId}})
+        if (res.data.isPoll === '1') {
+          appApi.appSyncPost({ syncId: res.data.syncId, userId: userId }).then(res => {
+            res.data.billsId = billsId
+            resolve(res)
           }).catch(err => reject(err))
-        } else if (res.data.tipFlag === '0' && res.data.isPoll === '0') {
-          resolve(billsId)
-          // router.push({path: '/paymentDetail/' + billsId})
+        } else {
+          res.data.billsId = billsId
+          resolve(res)
         }
       }).catch(err => reject(err))
     })
@@ -98,7 +83,6 @@ const actions = {
   withPresIdToPay ({ dispatch, commit, getters, rootGetters }, params) {
     return new Promise((resolve, reject) => {
       recipe.getPresMerge({presId: params.presId, hospId: rootGetters.getHospId, idCard: getters.userInfo.idCard, userId: getters.userInfo.userId}).then(res => {
-      // recipe.getPresMerge({}).then(res => {
         let billsId = res.data.billsId
         let userId = getters.userInfo.userId
         if (res.data.tipFlag === '1') {
@@ -119,10 +103,12 @@ const actions = {
       recipe.getPreSettlementBill({billsId: billsId, userId: userId}).then(res => {
         if (res.data.isPoll === '1') {
           appApi.appSyncPost({syncId: res.data.syncId, userId: userId}).then(res => {
-            resolve(billsId)
+            res.data.billsId = billsId
+            resolve(res)
           }).catch(err => reject(err))
         } else if (res.data.isPoll === '0') {
-          resolve(billsId)
+          res.data.billsId = billsId
+          resolve(res)
         }
       }).catch(err => reject(err))
     })
@@ -147,6 +133,11 @@ const actions = {
 const mutations = {
   GET_PRES_LIST (state, res) {
     res.pageNo === 1 ? state.presWaitList = res.presList : state.presWaitList = state.presWaitList.concat(res.presList)
+    for (let i = 0; i < state.presWaitList.length; i++) {
+      if (state.presWaitList[i].presName.length > 15) {
+        state.presWaitList[i].presName = state.presWaitList[i].presName.slice(0, 15) + '...'
+      }
+    }
     state.presWaitListNext = res.next
   },
   GET_PRES_LIST_FAILURE (state, res) {

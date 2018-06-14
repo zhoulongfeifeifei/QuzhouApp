@@ -4,10 +4,13 @@ import app from '../../api/app'
 const state = {
   login: true, // 是否登录
   user: {
-    userId: '15460',
+    userId: '300',
     authFlag: '',
     phoneNum: '151****8005',
-    idCard: '430381198907248110'
+    idCard: '330823197701120010',
+    cardNum: 'B22641434',
+    address: '临时的地址'
+    // siCardNo: 'B22641434'
   },
   header: '衢州人社',
   institutionInfo: {
@@ -20,7 +23,7 @@ const state = {
     // 'redirectUri': 'dyfs.dabay.cn/index',
     // 'redirectApi': 'http://dyfs.dabay.cn/'
   },
-  nextUrl: ''
+  nextUrl: '123456'
 }
 
 // getters
@@ -96,11 +99,23 @@ const mutations = {
 
   SET_USER_INFO (state, res) {
     // 包含userId, authFlag, idCard, phone
-    state.user = res.data
-    // alert(res.data.userId)
-    // localStorage.setItem('userId', res.data.userId)
+    state.user.userId = res.data.userId
+    // alert(res + '用户信息')
+    // state.user.name = '毛俊'
+    // state.user.idCard = '330823197701120010'
+    // state.user.cardNum = 'B22641434'
+    // state.user.address = '临时的地址'
+    // state.user.siCardNo = 'B22641434'
+    // state.user.phoneNum = '15638179576'
   },
+  getUserInfo (state, res) {
+    state.user.name = res.name
+    state.user.idCard = res.certNo
+    state.user.cardNum = res.cardNum
 
+    state.user.siCardNo = res.siNo
+    state.user.phoneNum = res.telphoneNo
+  },
   SET_SECUTITY_INFO_FAILURE (state, errorCode) {
     state.user = {}
     // state.errorMsg = errorCode

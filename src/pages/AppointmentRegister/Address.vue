@@ -1,14 +1,13 @@
 <template>
   <div class="address">
-     <div class="add_address">
-       <span>家庭住址</span>
-       <input type="text" id="addressDetail" placeholder="请填写家庭住址" v-model="address">
-     </div>
-     <mt-button @click.native ="goAdd()" size="large" type="danger" plain class="add">添加</mt-button>
+    <mt-field label="家庭住址" placeholder="请输入家庭住址" v-model="address" class="add-address"></mt-field>
+    <div class="button-container">
+      <mt-button @click.native ="goAdd()" size="large" type="danger">添 加</mt-button>
+    </div>
   </div>
 </template>
 <script>
-import { Button, Toast } from 'mint-ui'
+import { Button, MessageBox, Toast } from 'mint-ui'
 import { mapGetters } from 'vuex'
 
 export default {
@@ -20,7 +19,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['hospList'])
+    ...mapGetters(['getHospId', 'userInfo'])
   },
   created () {
     window.scope = this
@@ -28,42 +27,55 @@ export default {
   },
   methods: {
     goAdd () {
+      let pattern = /[`~!@#$%^&*()+<>?:"{},.\\/;'[\]]/im
       if (this.address === '') {
         Toast({
           message: '地址不能为空',
           position: 'middle',
           duration: 2000
         })
-        console.log(this.$route.query.tag)
+      } else if (pattern.test(this.address)) {
+        Toast({
+          message: '地址格式不正确',
+          position: 'middle',
+          duration: 2000
+        })
+      } else if (this.address.length > 50) {
+        Toast({
+          message: '地址格式长度不能超过50位',
+          position: 'middle',
+          duration: 2000
+        })
+      } else {
+        this.$indicator.open({text: '加载中...', spinnerType: 'snake'})
+        this.$store.dispatch('getFileInfo', {hospId: this.getHospId, address: this.address, idCard: this.userInfo.idCard, siCardNo: this.userInfo.cardNum})
+          .then(res => {
+            this.$indicator.close()
+          })
+          .catch(err => {
+            this.$indicator.close()
+            MessageBox('提示', err.msg ? err.msg : '服务器繁忙')
+            // this.$toast({message: err.msg ? err.msg : '服务器繁忙', position: 'center', duration: 2000})
+          })
       }
     }
   }
 }
 </script>
-<style lang="css" scoped>
-.add_address {
-    font-size: 0.8rem;
-    background: #fff;
-    margin-top: 1.2rem;
-    padding-left: 1rem;
+<style lang="scss" scoped>
+.add-address{
+  margin-top: .5rem;
+  border-top: 1px solid $color-border2;
+  border-bottom: 1px solid $color-border2;
 }
-.add_address span{
-  display: inline-block;
-  width: 30%;
-  line-height: 2.4rem;
+.add-address .mint-cell-value{
+  font-size: .8rem
 }
-.add_address input{
-  display: inline-block;
-  width: 65%;
-  height: 1.4rem;
-  border: none;
-  resize: none;
-  outline: none;
-  font-size: 0.7rem;
-  color: #666;
+.button-container{
+  padding: 0.95rem 0.75rem;
+  button{
+    width: 100%;
+    font-size: .8rem
   }
-  .add{
-    width: 94%;
-    margin: 0 auto;
-  }
+}
 </style>
